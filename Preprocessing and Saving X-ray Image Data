@@ -1,0 +1,55 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+import cv2
+import os
+import joblib
+
+# Define the directories containing the JPG images for each dataset
+dataset_dirs = [
+    '/train set/NORMAL',
+    '/train set/PNEUMONIA'
+]
+
+# Define the desired dimensions for resizing
+width, height = 256, 256  # Replace with your desired dimensions
+
+# Initialize lists to store the image data and corresponding labels
+image_data = []
+labels = []
+
+# Process each dataset separately
+for class_label, dataset_dir in enumerate(dataset_dirs):
+    # List all JPG files in the dataset directory
+    image_files = [f for f in os.listdir(dataset_dir) if f.endswith('.jpeg')]
+    
+    # Loop through the image files
+    for image_file in image_files:
+        # Construct the full path to the image
+        image_path = os.path.join(dataset_dir, image_file)
+        
+        # Load the image using OpenCV
+        image = cv2.imread(image_path)
+        
+        if image is not None:
+            # Convert the image to grayscale
+            grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            
+            # Resize the grayscale image to the desired dimensions
+            resized_image = cv2.resize(grayscale_image, (width, height))
+            
+            # Append the image data to the list
+            image_data.append(resized_image)
+            
+            # Append the corresponding label to the labels list
+            labels.append(class_label)
+
+# Convert the lists to NumPy arrays
+image_data_array = np.array(image_data)
+labels_array = np.array(labels)
+
+# Save the processed data and labels to a joblib file
+joblib.dump(image_data_array, "pneumonia_randomforest.joblib")
+joblib.dump(labels_array, "pneumonia_randomforest_image_labels.joblib")
+
+print(f"Processed and saved data from {len(image_data)} images")
