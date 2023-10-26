@@ -1,0 +1,50 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import confusion_matrix, f1_score
+import seaborn as sns
+import matplotlib.pyplot as plt
+import joblib
+
+# Load preprocessed data and labels
+image_data_array = joblib.load("pneumonia_randomforest.joblib")
+labels_array = joblib.load("pneumonia_randomforest_image_labels.joblib")
+
+# Flatten the images
+image_data_array = image_data_array.reshape(image_data_array.shape[0], -1)
+
+# Set a seed for reproducibility
+np.random.seed(1234)
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(image_data_array, labels_array, test_size=0.2, random_state=1234)
+
+# Define the Random Forest classifier
+rf_model = RandomForestClassifier(random_state=1234, n_estimators=100, max_depth=None, min_samples_split=5) # Adjust hyperparameters
+
+# Train the Random Forest model
+rf_model.fit(X_train, y_train)
+
+# Save the trained RandomForest model with a specific name
+model_filename = "pneumonia_randomforest_classification.joblib"
+joblib.dump(rf_model, model_filename)
+
+# Make predictions
+y_pred = rf_model.predict(X_test)
+
+# Calculate the F1 score
+f1 = f1_score(y_test, y_pred, average='weighted')
+
+print(f"F1 Score: {f1}")
+
+# Test Accuracy
+test_accuracy = (y_test == y_pred).mean()
+print(f"Test Accuracy: {test_accuracy}")
+
+# Confusion Matrix
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+plt.xlabel('Predicted')
+plt.ylabel('True')
+plt.show()
